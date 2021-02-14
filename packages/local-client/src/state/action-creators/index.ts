@@ -1,4 +1,5 @@
 import {
+  Action,
   BundleCompleteAction,
   BundleStartAction,
   DeleteCellAction,
@@ -8,9 +9,11 @@ import {
   UpdateCellAction,
 } from '../actions';
 import { ActionType } from '../action-types';
-import { CellType } from '../cell';
+import { Cell, CellType } from '../cell';
 import { AppDispatch } from '../store';
 import bundle, { BundledResut } from '../../bundler';
+import axios from 'axios';
+import { RootState } from '../reducers';
 
 export const updateCell = (id: string, content: string): UpdateCellAction => ({
   type: ActionType.UPDATE_CELL,
@@ -48,4 +51,45 @@ export const createBundle = (cellId: string, input: string) =>
     dispatch(startBundle(cellId));
     const bundled = await bundle(input);
     dispatch(completeBundle(cellId, bundled));
+  };
+
+const fetchCellsBegin = (): Action => ({
+  type: ActionType.FETCH_CELLS,
+});
+
+const fetchCellsComplete = (cells: Cell[]): Action => ({
+  type: ActionType.FETCH_CELLS_COMPLETE,
+  payload: cells,
+});
+
+const fetchCellsError = (error: string): Action => ({
+  type: ActionType.FETCH_CELLS_ERROR,
+  payload: error,
+});
+
+const saveCellsError = (error: string): Action => ({
+  type: ActionType.SAVE_CELLS_ERROR,
+  payload: error,
+});
+
+export const fetchCells = () =>
+  async (dispatch: AppDispatch) => {
+    dispatch(fetchCellsBegin());
+    try {
+      const { data: { cells } } = await axios.get<{cells: Cell[]}>('/api/cells');
+      dispatch(fetchCellsComplete(cells));
+    } catch (err) {
+      dispatch(fetchCellsError(err.message));
+    }
+  };
+
+export const saveCells = () =>
+  async (dispatch: AppDispatch, getState: () => RootState) => {
+    const data = getState().cells.data;
+    const cells = getState().cells.order.map(id => data[id]);
+    try {
+      await axios.post('/api/cells', { cells });
+    } catch (err) {
+      dispatch(saveCellsError(err.message));
+    }
   };
