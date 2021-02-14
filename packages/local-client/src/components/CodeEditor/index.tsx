@@ -25,6 +25,8 @@ const Index: React.FC<Props> = ({ initialValue, onChange, isSmallScreen = false 
     // подсветка синтакса JSX, скрывая вывод ошибок в консольку
     const highlighter = new Highlighter(monaco, codeshift, editor);
     highlighter.highLightOnDidChangeModelContent(() => {}, () => {}, undefined, () => {});
+    editor.setPosition({ lineNumber: Infinity, column: Infinity });
+    editor.focus();
   };
 
   const formatCode = () => {
