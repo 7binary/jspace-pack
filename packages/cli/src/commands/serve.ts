@@ -17,7 +17,8 @@ export const serveCommand = new Command()
         dir,
         !isProduction,
       );
-      console.log(`Opened ${filename}. Navigate to http://localhost:${options.port} to edit.`);
+      console.log(`Opened ${filename} inside ${dir}`);
+      console.log(`Navigate to http://localhost:${options.port} to edit.`);
     } catch (err) {
       if (err.code === 'EADDRINUSE') {
         console.log(`Port ${options.port} is in use. Try different port.`);
